@@ -1,0 +1,12 @@
+# Local terraform directories
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+*.tfvars.json
+
+# Configuration locks
+.terraform.lock.hcl
+
+# Mac operating system files
+.DS_Store
