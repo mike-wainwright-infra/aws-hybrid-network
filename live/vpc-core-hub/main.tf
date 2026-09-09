@@ -16,7 +16,12 @@ terraform {
 provider "aws" {
   region = var.aws_region
 }
-
+#----------------------------------------------------------------------------------
+# DYNAMIC DATA SOURCE: READ GLOBAL ROUTER ID FROM AWS SSM PARAMETER VAULT
+#----------------------------------------------------------------------------------
+data "aws_ssm_parameter" "global_tgw" {
+  name = "/network/global-tgw/id"
+}
 #----------------------------------------------------------------------------------
 # NATIVE CORE ENGINE CALL: REUSABLE NETWORK WRAPPER MODULE
 #----------------------------------------------------------------------------------
@@ -37,10 +42,10 @@ module "core_hub_vpc" {
 
 #----------------------------------------------------------------------------------
 # TRANSIT ROUTING ENGINE ATTACHMENT
-# Explicit linkage between Core Hub VPC and the Central Router Plane
 #----------------------------------------------------------------------------------
 resource "aws_ec2_transit_gateway_vpc_attachment" "hub_tgw_attachment" {
-  transit_gateway_id = var.transit_gateway_id
+  # Dynamically fetches the value out of the SSM Data Source instead of using a raw variable
+  transit_gateway_id = data.aws_ssm_parameter.global_tgw.value
   vpc_id             = module.core_hub_vpc.vpc_id
   subnet_ids         = [module.core_hub_vpc.tgw_subnet_id]
 

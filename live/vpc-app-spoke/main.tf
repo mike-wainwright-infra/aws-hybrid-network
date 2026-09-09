@@ -18,29 +18,33 @@ provider "aws" {
 }
 
 #----------------------------------------------------------------------------------
+# DYNAMIC DATA SOURCE: READ GLOBAL ROUTER ID FROM AWS SSM PARAMETER VAULT
+#----------------------------------------------------------------------------------
+data "aws_ssm_parameter" "global_tgw" {
+  name = "/network/global-tgw/id"
+}
+
+#----------------------------------------------------------------------------------
 # NATIVE CORE ENGINE CALL: REUSABLE NETWORK WRAPPER MODULE
 #----------------------------------------------------------------------------------
 module "app_spoke_vpc" {
   source = "../../modules/vpc"
 
-  # Aligning input variables precisely with modules/vpc/variables.tf
   vpc_name            = "live-app-spoke"
-  vpc_cidr            = "10.200.0.0/16"      # Non-overlapping IP Space
-  public_subnet_cidr  = "10.200.1.0/24"      # Dormant/Empty Public Subnet
-  private_subnet_cidr = "10.200.2.0/24"      # Host for secure App/EC2 Workloads
-  tgw_subnet_cidr     = "10.200.3.0/28"      # Dedicated attachment point
+  vpc_cidr            = "10.200.0.0/16"
+  public_subnet_cidr  = "10.200.1.0/24"
+  private_subnet_cidr = "10.200.2.0/24"
+  tgw_subnet_cidr     = "10.200.3.0/28"
   availability_zone   = "eu-west-2a"
 
-  # STRICT SECURITY ENFORCEMENT: No direct internet edge switch allowed
   enable_internet_gateway = false
 }
 
 #----------------------------------------------------------------------------------
 # TRANSIT ROUTING ENGINE ATTACHMENT
-# Plugs the isolated Application Spoke directly into the Central Router Plane
 #----------------------------------------------------------------------------------
 resource "aws_ec2_transit_gateway_vpc_attachment" "spoke_tgw_attachment" {
-  transit_gateway_id = var.transit_gateway_id
+  transit_gateway_id = data.aws_ssm_parameter.global_tgw.value
   vpc_id             = module.app_spoke_vpc.vpc_id
   subnet_ids         = [module.app_spoke_vpc.tgw_subnet_id]
 
