@@ -28,7 +28,7 @@ graph TB
         %% 3. ON-PREMISES DATA CENTRE SIMULATOR
         subgraph ONPREM_VPC [VPC: Corporate DC Simulator - 172.16.0.0/16]
             direction TB
-            onprem_db[Secure Database Subnet <br> 172.16.2.0/24 <br> PostgreSQL Engine | Port 5432]
+            onprem_db["Secure Database Subnet <br> 172.16.2.0/24 <br> PostgreSQL Engine | Port 5432"]
             onprem_tgw[TGW Attachment Subnet <br> 172.16.3.0/28]
         end
         style ONPREM_VPC fill:#FAFAFA,stroke:#7A869A,stroke-width:2px
